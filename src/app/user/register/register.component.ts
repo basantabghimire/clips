@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth.service';
 import IUser from 'src/app/models/user.model';
-
+import { RegisterValidators } from '../validators/register-validators';
 
 @Component({
   selector: 'app-register',
@@ -10,9 +10,7 @@ import IUser from 'src/app/models/user.model';
   styleUrls: ['./register.component.css'],
 })
 export class RegisterComponent {
-  constructor(
-    private auth: AuthService
-  ) {}
+  constructor(private auth: AuthService) {}
 
   inSubmission = false;
 
@@ -42,14 +40,17 @@ export class RegisterComponent {
   alertMsg = 'Please wait your account is being created.';
   alertColor = 'blue';
 
-  registerForm = new FormGroup({
-    name: this.name,
-    email: this.email,
-    age: this.age,
-    password: this.password,
-    confirm_password: this.confirm_password,
-    phoneNumber: this.phoneNumber,
-  });
+  registerForm = new FormGroup(
+    {
+      name: this.name,
+      email: this.email,
+      age: this.age,
+      password: this.password,
+      confirm_password: this.confirm_password,
+      phoneNumber: this.phoneNumber,
+    },
+    [RegisterValidators.match('password', 'confirm_password')]
+  );
 
   async register() {
     this.showAlert = true;
@@ -57,9 +58,8 @@ export class RegisterComponent {
     this.alertColor = 'blue';
     this.inSubmission = true;
 
-    
     try {
-      await this.auth.createUser(this.registerForm.value as IUser)      
+      await this.auth.createUser(this.registerForm.value as IUser);
     } catch (e) {
       console.log(e);
       this.alertMsg = 'An unexpected error occurred. Please try again later';
