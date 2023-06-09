@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { AngularFireStorageModule } from '@angular/fire/compat/storage';
+import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { v4 as uuid } from 'uuid';
-import {last} from 'rxjs/operators'
+import { last } from 'rxjs/operators';
 
 @Component({
   selector: 'app-upload',
@@ -18,7 +18,6 @@ export class UploadComponent implements OnInit {
   alertMsg = 'Please wait Your clip is being uploaded!!';
   inSubmission = false;
   percentage = 0;
-  
 
   title = new FormControl(
     '',
@@ -30,7 +29,7 @@ export class UploadComponent implements OnInit {
     title: this.title,
   });
 
-  constructor(private storage: AngularFireStorageModule) {}
+  constructor(private storage: AngularFireStorage) {}
 
   ngOnInit(): void {}
 
@@ -53,14 +52,11 @@ export class UploadComponent implements OnInit {
     const clipFileName = uuid();
     const clipPath = `clips/${clipFileName}.mp4`;
 
-    const task =  this.storage.upload(clipPath, this.file)
-    
-    task.percentageChanges().subscribe((progress:number) => {
-      this.percentage = progress /100;
+    const task = this.storage.upload(clipPath, this.file);
+
+    task.percentageChanges().subscribe((progress) => {
+      this.percentage = (progress as number) / 100;
     });
-    task.snapshotChanges().pipe(
-      last()
-    ).subscribe(console.log());
-    
+    task.snapshotChanges().pipe(last()).subscribe(console.log);
   }
 }
