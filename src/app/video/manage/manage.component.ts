@@ -26,13 +26,13 @@ export class ManageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe((params: Params) => {
+    this.route.queryParams.subscribe((params: Params) => {
       this.videoOrder = params['sort'] === '2' ? params['sort'] : '1';
       this.sort$.next(this.videoOrder);
     });
     this.clipService.getUserClips(this.sort$).subscribe((docs) => {
       this.clips = [];
-      docs.forEach(doc => {
+      docs.forEach((doc) => {
         this.clips.push({
           docID: doc.id,
           ...doc.data(),
@@ -46,8 +46,8 @@ export class ManageComponent implements OnInit {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
-        sort: value
-      }
+        sort: value,
+      },
     });
   }
 
