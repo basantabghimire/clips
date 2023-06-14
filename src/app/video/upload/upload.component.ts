@@ -1,14 +1,16 @@
 import { Component, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { AngularFireStorage, AngularFireUploadTask } from '@angular/fire/compat/storage';
+import {
+  AngularFireStorage,
+  AngularFireUploadTask,
+} from '@angular/fire/compat/storage';
 import { v4 as uuid } from 'uuid';
 import { last, switchMap } from 'rxjs/operators';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import firebase from 'firebase/compat/app';
 import { ClipService } from 'src/app/services/clip.service';
-import {Router} from '@angular/router'
-
-
+import { Router } from '@angular/router';
+import { FfmpegService } from 'src/app/services/ffmpeg.service';
 
 @Component({
   selector: 'app-upload',
@@ -28,7 +30,8 @@ export class UploadComponent implements OnDestroy {
   user: firebase.User | null = null;
   task?: AngularFireUploadTask;
 
-  title = new FormControl( '',
+  title = new FormControl(
+    '',
     [Validators.required, Validators.minLength(3)]
     // ,
     //  nonNullable: true
@@ -41,22 +44,24 @@ export class UploadComponent implements OnDestroy {
     private storage: AngularFireStorage,
     private auth: AngularFireAuth,
     private clipsService: ClipService,
-    private router: Router
+    private router: Router,
+    public ffmpegService: FfmpegService
   ) {
     auth.user.subscribe((user) => (this.user = user));
+    this.ffmpegService.init();
   }
 
   ngOnDestroy(): void {
-    this.task?.cancel()
+    this.task?.cancel();
   }
 
   storeFile($event: Event) {
     console.log($event);
-    
+
     this.isDragover = false;
-    this.file =  ($event as DragEvent).dataTransfer?
-    ($event as DragEvent).dataTransfer?.files.item(0) ?? null:
-    ($event.target as HTMLInputElement).files?.item(0)?? null
+    this.file = ($event as DragEvent).dataTransfer
+      ? ($event as DragEvent).dataTransfer?.files.item(0) ?? null
+      : ($event.target as HTMLInputElement).files?.item(0) ?? null;
 
     if (!this.file || this.file.type !== 'video/mp4') {
       return;
@@ -66,7 +71,7 @@ export class UploadComponent implements OnDestroy {
     this.nextStep = true;
   }
   uploadFile() {
-    this.uploadForm.disable()
+    this.uploadForm.disable();
 
     this.showAlert = true;
     this.alertColor = 'blue';
@@ -93,12 +98,12 @@ export class UploadComponent implements OnDestroy {
       .subscribe({
         next: async (url) => {
           const clip = {
-            uid : this.user?.uid as string,
+            uid: this.user?.uid as string,
             displayName: this.user?.displayName as string,
             title: this.title.value as string,
             fileName: `${clipFileName}.mp4`,
             url,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           };
 
           const clipDocRef = await this.clipsService.createClip(clip);
@@ -108,14 +113,12 @@ export class UploadComponent implements OnDestroy {
           this.alertMsg = 'Success! Your clips is ready for world';
           this.showPercentage = false;
 
-          setTimeout(()=>{
-            this.router.navigate([
-              'clip',clipDocRef.id
-            ])
-          },1000)
+          setTimeout(() => {
+            this.router.navigate(['clip', clipDocRef.id]);
+          }, 1000);
         },
         error: (error) => {
-          this.uploadForm.enable()
+          this.uploadForm.enable();
 
           this.alertColor = 'red';
           this.alertMsg = 'Upload failed please try again later ';

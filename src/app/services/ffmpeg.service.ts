@@ -6,18 +6,19 @@ import { createFFmpeg } from '@ffmpeg/ffmpeg';
 })
 export class FfmpegService {
   isReady = false;
-  private ffmpeg;
+  private ffmpeg
 
-  constructor() {
-    this.ffmpeg = createFFmpeg({ log: true });
+  constructor() { 
+    this.ffmpeg = createFFmpeg({ log: true })
   }
 
   async init() {
-    if (this.isReady) {
-      return;
+    if(this.isReady) {
+      return
     }
-    await this.ffmpeg.load();
 
-    this.isReady = true;
+    await this.ffmpeg.load()
+
+    this.isReady = true
   }
 }
