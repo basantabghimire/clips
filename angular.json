@@ -22,8 +22,8 @@
               "src/favicon.ico",
               "src/assets",
               {
-                "input": "node_modules/@ffmpeg/core/dist",
-                "output": "node_modules/@ffmpeg/core/dist",
+                "input": "node_modules/@ffmpeg/corp/dist",
+                "output": "node_modules/@ffmpeg/corp/dist",
                 "glob": "*"
               }
             ],
