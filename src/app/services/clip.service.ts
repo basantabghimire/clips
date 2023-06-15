@@ -81,6 +81,7 @@ export class ClipService {
       const lastDocID= this.pageClips[length - 1].docID
       const lastDoc = await this.clipsCollection.doc(lastDocID)
       .get()
+      //promise deprecated
       .toPromise()
 
       query = query.startAfter(lastDoc)
