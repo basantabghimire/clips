@@ -1,4 +1,4 @@
-# Clips
+# Clips [Complete Angular Developer in 2023: Zero to Mastery](https://www.udemy.com/course/complete-angular-developer-zero-to-mastery)
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.0.4.
 
