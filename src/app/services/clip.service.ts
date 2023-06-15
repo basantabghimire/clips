@@ -9,19 +9,23 @@ import IClip from '../models/clip.model';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { switchMap, map } from 'rxjs/operators';
 import { of, BehaviorSubject, combineLatest } from 'rxjs';
-import {AngularFireStorage} from '@angular/fire/compat/storage'
-import { __values } from 'tslib';
+import { AngularFireStorage } from '@angular/fire/compat/storage';
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class ClipService {
   public clipsCollection: AngularFirestoreCollection<IClip>;
+  pageClips: IClip[] = []
+  pendingReq = false
 
-  constructor(private db: AngularFirestore, 
+
+  constructor(
+    private db: AngularFirestore,
     private auth: AngularFireAuth,
-    private storage: AngularFireStorage,
-    ) {
+    private storage: AngularFireStorage
+  ) {
     this.clipsCollection = db.collection('clips');
   }
 
@@ -29,37 +33,66 @@ export class ClipService {
     return this.clipsCollection.add(data);
   }
 
-  getUserClips(sort$:BehaviorSubject<string>){
-    return combineLatest([
-      this.auth.user,
-      sort$
-    ]).pipe(
-      switchMap(values=>{
-        const [user, sort]= values
+  getUserClips(sort$: BehaviorSubject<string>) {
+    return combineLatest([this.auth.user, sort$]).pipe(
+      switchMap((values) => {
+        const [user, sort] = values;
 
-        if(!user){
-          return of([])
+        if (!user) {
+          return of([]);
         }
-        const query= this.clipsCollection.ref.where(
-          'uid', '==', user.uid
-        ).orderBy(
-          'timestamp',
-          sort === '1' ? 'desc' : 'asc'
-        )
-        return query.get()
+        const query = this.clipsCollection.ref
+          .where('uid', '==', user.uid)
+          .orderBy('timestamp', sort === '1' ? 'desc' : 'asc');
+        return query.get();
       }),
-      map(snapshot=>(snapshot as QuerySnapshot<IClip>).docs)
-    )
+      map((snapshot) => (snapshot as QuerySnapshot<IClip>).docs)
+    );
   }
-  updateClip(id: string, title: string){
+  updateClip(id: string, title: string) {
     return this.clipsCollection.doc(id).update({
-      title
-    })
+      title,
+    });
   }
-  async deleteClip(clip:IClip){
-    const clipRef = this.storage.ref(`clips/${clip.fileName}`)
+  async deleteClip(clip: IClip) {
+    const clipRef = this.storage.ref(`clips/${clip.fileName}`);
 
-    await clipRef.delete()
-    await this.clipsCollection.doc(clip.docID).delete()
+    const screenshotRef = this.storage.ref(
+      `screenshots/${clip.screenshotFileName}`
+    );
+
+    await clipRef.delete();
+    await screenshotRef.delete();
+    await this.clipsCollection.doc(clip.docID).delete();
+  }
+
+  async getClips(){
+    if(this.pendingReq){
+      return
+    }
+    this.pendingReq= true
+    let query = this.clipsCollection.ref.orderBy(
+      'timestamp', 'desc'
+    ).limit(6)
+
+    const {length} = this.pageClips
+
+    if(length){
+      const lastDocID= this.pageClips[length - 1].docID
+      const lastDoc = await this.clipsCollection.doc(lastDocID)
+      .get()
+      .toPromise()
+
+      query = query.startAfter(lastDoc)
+    }
+    const snapshot = await query.get()
+
+    snapshot.forEach(doc => {
+      this.pageClips.push({
+        docID: doc.id,
+        ...doc.data()
+      })
+    })
+    this.pendingReq= false
   }
 }
