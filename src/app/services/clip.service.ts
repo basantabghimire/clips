@@ -8,7 +8,7 @@ import {
 import IClip from '../models/clip.model';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { switchMap, map } from 'rxjs/operators';
-import { of, BehaviorSubject, combineLatest } from 'rxjs';
+import { of, BehaviorSubject, combineLatest, lastValueFrom } from 'rxjs';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 
 
@@ -79,10 +79,9 @@ export class ClipService {
 
     if(length){
       const lastDocID= this.pageClips[length - 1].docID
-      const lastDoc = await this.clipsCollection.doc(lastDocID)
-      .get()
+      const lastDoc = await lastValueFrom(this.clipsCollection.doc(lastDocID).get());
       //promise deprecated
-      .toPromise()
+     //.toPromise()
 
       query = query.startAfter(lastDoc)
     }
