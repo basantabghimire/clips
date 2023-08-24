@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalService } from '../services/modal.service';
 import { AuthService } from '../services/auth.service';
+import IUser from '../models/user.model';
 
 
 
@@ -10,6 +11,7 @@ import { AuthService } from '../services/auth.service';
   styleUrls: ['./nav.component.css'],
 })
 export class NavComponent implements OnInit {
+  user!: IUser;
   constructor(
     public modal: ModalService, 
     public auth: AuthService,
